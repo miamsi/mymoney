@@ -14,6 +14,7 @@ export default function AppShell({ user }) {
   const [slots, setSlots] = useState([]);
   const [tab, setTab] = useState('chat');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const loadMonth = useCallback(async (m) => {
     let { data: monthRow } = await supabase.from('budget_months').select('*').eq('month', m).maybeSingle();
@@ -104,21 +105,49 @@ export default function AppShell({ user }) {
     await supabase.auth.signOut();
   }
 
+  const tabLabel = tab === 'manual' ? 'Manual entry' : tab === 'slots' ? 'Manage slots' : 'Chat';
+
   return (
     <div className="min-h-screen flex">
-      <Sidebar user={user} month={month} setMonth={setMonth} slots={slots} tab={tab} setTab={setTab} onSignOut={signOut} />
-      <main className="flex-1 h-screen overflow-hidden">
-        {tab === 'chat' && <ChatPanel month={month} slots={slots} onConfirmTransaction={addTransaction} />}
-        {tab === 'manual' && <ManualPanel month={month} slots={slots} onAddTransaction={addTransaction} />}
-        {tab === 'slots' && (
-          <SlotManager
-            slots={slots}
-            onAddSlot={addSlot}
-            onUpdateSlot={updateSlot}
-            onDeleteSlot={deleteSlot}
-            onDuplicate={duplicatePreviousMonth}
-          />
-        )}
+      <Sidebar
+        user={user}
+        month={month}
+        setMonth={setMonth}
+        slots={slots}
+        tab={tab}
+        setTab={setTab}
+        onSignOut={signOut}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
+      <main className="flex-1 h-screen overflow-hidden flex flex-col min-w-0">
+        <div className="md:hidden shrink-0 flex items-center gap-3 px-4 py-3 border-b border-white/10 glass">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white/70"
+            aria-label="Open menu"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+              <line x1="2" y1="4.5" x2="16" y2="4.5" />
+              <line x1="2" y1="9" x2="16" y2="9" />
+              <line x1="2" y1="13.5" x2="16" y2="13.5" />
+            </svg>
+          </button>
+          <span className="text-sm text-white/70">{tabLabel}</span>
+        </div>
+        <div className="flex-1 overflow-hidden">
+          {tab === 'chat' && <ChatPanel month={month} slots={slots} onConfirmTransaction={addTransaction} />}
+          {tab === 'manual' && <ManualPanel month={month} slots={slots} onAddTransaction={addTransaction} />}
+          {tab === 'slots' && (
+            <SlotManager
+              slots={slots}
+              onAddSlot={addSlot}
+              onUpdateSlot={updateSlot}
+              onDeleteSlot={deleteSlot}
+              onDuplicate={duplicatePreviousMonth}
+            />
+          )}
+        </div>
       </main>
     </div>
   );

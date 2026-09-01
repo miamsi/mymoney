@@ -14,42 +14,56 @@ function monthLabel(month) {
   return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
-export default function Sidebar({ user, month, setMonth, slots, tab, setTab, onSignOut }) {
+export default function Sidebar({ user, month, setMonth, slots, tab, setTab, onSignOut, open, onClose }) {
   const expenseSlots = slots.filter((s) => s.type === 'expense');
   const incomeSlots = slots.filter((s) => s.type === 'income');
 
   return (
-    <aside className="w-80 shrink-0 h-screen flex flex-col glass border-r border-white/10">
-      <div className="p-4 border-b border-white/10">
-        <h1 className="text-sm font-semibold tracking-wide text-white/90">Budget Tracker</h1>
-        <div className="mt-3 flex items-center justify-between">
-          <button onClick={() => setMonth(shiftMonth(month, -1))} className="w-7 h-7 rounded-lg hover:bg-white/10 text-white/50 text-sm">
-            ‹
-          </button>
-          <span className="text-sm text-white/80">{monthLabel(month)}</span>
-          <button onClick={() => setMonth(shiftMonth(month, 1))} className="w-7 h-7 rounded-lg hover:bg-white/10 text-white/50 text-sm">
-            ›
-          </button>
+    <>
+      {open && <div onClick={onClose} className="fixed inset-0 z-30 bg-black/60 md:hidden" aria-hidden="true" />}
+      <aside
+        className={`fixed md:static inset-y-0 left-0 z-40 w-80 max-w-[85vw] shrink-0 h-screen flex flex-col glass border-r border-white/10 transform transition-transform duration-200 ease-out md:translate-x-0 ${
+          open ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="p-4 border-b border-white/10">
+          <div className="flex items-center justify-between">
+            <h1 className="text-sm font-semibold tracking-wide text-white/90">Budget Tracker</h1>
+            <button onClick={onClose} className="md:hidden w-7 h-7 rounded-lg hover:bg-white/10 text-white/50 text-sm" aria-label="Close menu">
+              ✕
+            </button>
+          </div>
+          <div className="mt-3 flex items-center justify-between">
+            <button onClick={() => setMonth(shiftMonth(month, -1))} className="w-7 h-7 rounded-lg hover:bg-white/10 text-white/50 text-sm">
+              ‹
+            </button>
+            <span className="text-sm text-white/80">{monthLabel(month)}</span>
+            <button onClick={() => setMonth(shiftMonth(month, 1))} className="w-7 h-7 rounded-lg hover:bg-white/10 text-white/50 text-sm">
+              ›
+            </button>
+          </div>
         </div>
-      </div>
 
-      <nav className="p-3 flex gap-1 border-b border-white/10">
-        {[
-          { id: 'chat', label: 'Chat' },
-          { id: 'manual', label: 'Manual' },
-          { id: 'slots', label: 'Slots' },
-        ].map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`flex-1 text-xs py-1.5 rounded-lg transition ${
-              tab === t.id ? 'bg-white/15 text-white' : 'text-white/40 hover:text-white/70 hover:bg-white/5'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </nav>
+        <nav className="p-3 flex gap-1 border-b border-white/10">
+          {[
+            { id: 'chat', label: 'Chat' },
+            { id: 'manual', label: 'Manual' },
+            { id: 'slots', label: 'Slots' },
+          ].map((t) => (
+            <button
+              key={t.id}
+              onClick={() => {
+                setTab(t.id);
+                onClose();
+              }}
+              className={`flex-1 text-xs py-1.5 rounded-lg transition ${
+                tab === t.id ? 'bg-white/15 text-white' : 'text-white/40 hover:text-white/70 hover:bg-white/5'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </nav>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-4">
         {expenseSlots.length > 0 && (
@@ -81,7 +95,8 @@ export default function Sidebar({ user, month, setMonth, slots, tab, setTab, onS
           Sign out
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
 
